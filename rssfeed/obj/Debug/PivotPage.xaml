@@ -64,7 +64,7 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>/-->
-                <ScrollViewer x:Name="myScrollViewer">
+                
                     <GridView x:ConnectionId='2'
                     x:Name="itemGridView"
                     AutomationProperties.AutomationId="ItemsGridView"
@@ -77,8 +77,6 @@
                                                   >
                         <GridView.ItemTemplate>
                             <DataTemplate>
-                                <!--chto za jobanaya zhopa? kak sdelat chtoby tekst byl pod kartinkoj, a ne na nej?
-                                delo dazhe ne v tom kak luchshe, ya prosto uzhe iz printsipa hochu ponyat v chem zagvozdka, kakogo huya u menya ne poluchaetsya?-->
                                 <Grid HorizontalAlignment="Left" MinHeight="200">
                                     <Border Background="{ThemeResource ListViewItemPlaceholderBackgroundThemeBrush}" Margin="0" HorizontalAlignment="Left" Width="386">
                                         <Image Source="{Binding ImagePath}" AutomationProperties.Name="{Binding Title}" />
@@ -91,7 +89,7 @@
                             </DataTemplate>
                         </GridView.ItemTemplate>
                     </GridView>
-                </ScrollViewer>
+
             </PivotItem>
 
             <!--Pivot item two-->
