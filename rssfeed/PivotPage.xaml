@@ -78,11 +78,12 @@
                         <GridView.ItemTemplate>
                             <DataTemplate>
                                 <Grid HorizontalAlignment="Left" MinHeight="200">
+                                    
+                                    <StackPanel VerticalAlignment="Top" Background="{ThemeResource ListViewItemOverlayBackgroundThemeBrush}" >
                                     <Border Background="{ThemeResource ListViewItemPlaceholderBackgroundThemeBrush}" Margin="0" HorizontalAlignment="Left" Width="386">
                                         <Image Source="{Binding ImagePath}" AutomationProperties.Name="{Binding Title}" />
                                     </Border>
-                                    <StackPanel VerticalAlignment="Bottom" Background="{ThemeResource ListViewItemOverlayBackgroundThemeBrush}" Height="150">
-                                        <TextBlock Text="{Binding Title}" Foreground="{ThemeResource AppBarBackgroundThemeBrush}" Style="{StaticResource BaseTextBlockStyle}" Margin="15,0,14.833,0" FontWeight="SemiBold" VerticalAlignment="Bottom"/>
+                                    <TextBlock Text="{Binding Title}" Foreground="{ThemeResource AppBarBackgroundThemeBrush}" Style="{StaticResource BaseTextBlockStyle}" Margin="15,0,14.833,0" FontWeight="SemiBold" VerticalAlignment="Bottom"/>
                                         <TextBlock Text="{Binding Description}" Foreground="{ThemeResource AppBarBackgroundThemeBrush}" Style="{StaticResource BaseTextBlockStyle}" Height="90" Margin="15,0,15,0" FontWeight="SemiBold" VerticalAlignment="Top" FontSize="12" LineHeight="18"/>
                                     </StackPanel>
                                 </Grid>
