@@ -10,6 +10,7 @@ using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.Web.Syndication;
 
+
 namespace rssfeed.Data
 {
     /// <summary>
@@ -41,6 +42,7 @@ namespace rssfeed.Data
     public sealed class DataSource
     {
         private static DataSource _dataSource = new DataSource();
+        private static string LastURL = string.Empty;
 
         private ObservableCollection<DataGroup> _groups = new ObservableCollection<DataGroup>();
         public ObservableCollection<DataGroup> Groups
@@ -48,16 +50,16 @@ namespace rssfeed.Data
             get { return this._groups; }
         }
 
-        public static async Task<IEnumerable<DataGroup>> GetGroupsAsync()
+        public static async Task<IEnumerable<DataGroup>> GetGroupsAsync(string URL)
         {
-            await _dataSource.GetSampleDataAsync();
+            await _dataSource.GetSampleDataAsync(URL);
 
             return _dataSource.Groups;
         }
 
         public static async Task<DataGroup> GetGroupAsync(string uniqueId)
         {
-            await _dataSource.GetSampleDataAsync();
+            await _dataSource.GetSampleDataAsync(LastURL);
             var matches = _dataSource.Groups.Where((group) => group.UniqueId.Equals(uniqueId));
             if (matches.Count() == 1) return matches.First();
             return null;
@@ -72,14 +74,16 @@ namespace rssfeed.Data
 
 
 
-        private async Task GetSampleDataAsync()
+        private async Task GetSampleDataAsync(string URL)
         {
-            if (this._groups.Count != 0)
+            if ((this._groups.Count != 0) && (URL == LastURL) && !string.IsNullOrEmpty(URL))
                 return;
 
+            LastURL = URL;
+            _groups = new ObservableCollection<DataGroup>();
 
             SyndicationClient client = new SyndicationClient();
-            Uri feedUri = new Uri("http://feeds.feedburner.com/TechCrunch/");
+            Uri feedUri = new Uri(URL);//"http://feeds.feedburner.com/TechCrunch/");
             var feed = await client.RetrieveFeedAsync(feedUri);
 
             foreach (SyndicationItem item in feed.Items)
@@ -108,10 +112,6 @@ namespace rssfeed.Data
 
                 this.Groups.Add(group);
                 //}
-
-
-
-
             }
         }
     }

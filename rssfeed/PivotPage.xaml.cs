@@ -18,10 +18,8 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-
-
 using System.ComponentModel;
-using System.Collections.ObjectModel;
+using Windows.UI.Popups;
 
 // The Pivot Application template is documented at http://go.microsoft.com/fwlink/?LinkID=391641
 
@@ -78,8 +76,21 @@ namespace rssfeed
         private async void navigationHelper_LoadState(object sender, LoadStateEventArgs e)
         {
             // TODO: Create an appropriate data model for your problem domain to replace the sample data
-            var sampleDataGroups = await DataSource.GetGroupsAsync();
-            this.DefaultViewModel["Items"] = sampleDataGroups;
+            try
+            {
+                FeedsListItem feed = (FeedsListItem)e.NavigationParameter;
+                ((PivotItem)pivot.Items[0]).Header = feed.Name;
+                var sampleDataGroups = await DataSource.GetGroupsAsync(feed.URL);
+                this.DefaultViewModel["Items"] = sampleDataGroups;
+            }
+            catch
+            {
+                MessageDialog msgbox = new MessageDialog("Error Reading feed");
+                //Calling the Show method of MessageDialog class  
+                //which will show the MessageBox  
+                msgbox.ShowAsync();
+                Frame.GoBack();
+            }
         }
 
         /// <summary>
