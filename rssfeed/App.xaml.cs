@@ -16,6 +16,7 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
+using Windows.Storage;
 
 // The Pivot Application template is documented at http://go.microsoft.com/fwlink/?LinkID=391641
 
@@ -104,7 +105,12 @@ namespace rssfeed
                 // When the navigation stack isn't restored navigate to the first page,
                 // configuring the new page by passing required information as a navigation
                 // parameter.
-                if (!rootFrame.Navigate(typeof(FeedsListPage), e.Arguments))
+                Type rootClass;
+                if (ApplicationData.Current.LocalSettings.Values.ContainsKey("BlogURL"))
+                    rootClass = typeof(PickedItemsPage);
+                else
+                    rootClass = typeof(WPSettingsPage);
+                if (!rootFrame.Navigate(rootClass, e.Arguments))
                 {
                     throw new Exception("Failed to create initial page");
                 }

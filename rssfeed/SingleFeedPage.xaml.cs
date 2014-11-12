@@ -19,22 +19,18 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using System.ComponentModel;
-using Windows.UI.Popups;
 
 // The Pivot Application template is documented at http://go.microsoft.com/fwlink/?LinkID=391641
 
 namespace rssfeed
 {
-    public sealed partial class PivotPage : Page
+    public sealed partial class SingleFeedPage : Page
     {
-        private const string FirstGroupName = "FirstGroup";
-        private const string SecondGroupName = "SecondGroup";
-
         private readonly NavigationHelper navigationHelper;
         private readonly ObservableDictionary defaultViewModel = new ObservableDictionary();
         private readonly ResourceLoader resourceLoader = ResourceLoader.GetForCurrentView("Resources");
 
-        public PivotPage()
+        public SingleFeedPage()
         {
             this.InitializeComponent();
 
@@ -75,22 +71,12 @@ namespace rssfeed
         /// session. The state will be null the first time a page is visited.</param>
         private async void navigationHelper_LoadState(object sender, LoadStateEventArgs e)
         {
-            // TODO: Create an appropriate data model for your problem domain to replace the sample data
-            try
-            {
-                FeedsListItem feed = (FeedsListItem)e.NavigationParameter;
-                ((PivotItem)pivot.Items[0]).Header = feed.Name;
-                var sampleDataGroups = await DataSource.GetGroupsAsync(feed.URL);
-                this.DefaultViewModel["Items"] = sampleDataGroups;
-            }
-            catch
-            {
-                MessageDialog msgbox = new MessageDialog("Error Reading feed");
-                //Calling the Show method of MessageDialog class  
-                //which will show the MessageBox  
-                msgbox.ShowAsync();
-                Frame.GoBack();
-            }
+            btnPick.IsEnabled = false;
+            FeedsListItem feed = (FeedsListItem)e.NavigationParameter;
+            lblFeedName.Text = feed.Name;
+            var sampleDataGroups = await DataSource.GetGroupsAsync(feed.URL);
+            this.DefaultViewModel["Items"] = sampleDataGroups;
+            itemGridView_SelectionChanged(null, null);
         }
 
         /// <summary>
@@ -106,53 +92,6 @@ namespace rssfeed
             // TODO: Save the unique state of the page here.
         }
 
-        /// <summary>
-        /// Adds an item to the list when the app bar button is clicked.
-        /// </summary>
-        private void AddAppBarButton_Click(object sender, RoutedEventArgs e)
-        {
-            string groupName = this.pivot.SelectedIndex == 0 ? FirstGroupName : SecondGroupName;
-            var group = this.DefaultViewModel[groupName] as SampleDataGroup;
-            var nextItemId = group.Items.Count + 1;
-            var newItem = new SampleDataItem(
-                string.Format(CultureInfo.InvariantCulture, "Group-{0}-Item-{1}", this.pivot.SelectedIndex + 1, nextItemId),
-                string.Format(CultureInfo.CurrentCulture, this.resourceLoader.GetString("NewItemTitle"), nextItemId),
-                string.Empty,
-                string.Empty,
-                this.resourceLoader.GetString("NewItemDescription"),
-                string.Empty);
-
-            group.Items.Add(newItem);
-
-            // Scroll the new item into view.
-            var container = this.pivot.ContainerFromIndex(this.pivot.SelectedIndex) as ContentControl;
-            var listView = container.ContentTemplateRoot as ListView;
-            listView.ScrollIntoView(newItem, ScrollIntoViewAlignment.Leading);
-        }
-
-        /// <summary>
-        /// Invoked when an item within a section is clicked.
-        /// </summary>
-        private void ItemView_ItemClick(object sender, ItemClickEventArgs e)
-        {
-            // Navigate to the appropriate destination page, configuring the new page
-            // by passing required information as a navigation parameter
-
-            //var itemId = ((SampleDataItem)e.ClickedItem).UniqueId;
-            //if (!Frame.Navigate(typeof(ItemPage), itemId))
-            //{
-            //    throw new Exception(this.resourceLoader.GetString("NavigationFailedExceptionMessage"));
-            //}
-        }
-
-        /// <summary>
-        /// Loads the content for the second pivot item when it is scrolled into view.
-        /// </summary>
-        private async void SecondPivot_Loaded(object sender, RoutedEventArgs e)
-        {
-            var sampleDataGroup = await SampleDataSource.GetGroupAsync("Group-2");
-            this.DefaultViewModel[SecondGroupName] = sampleDataGroup;
-        }
 
         #region NavigationHelper registration
 
@@ -180,5 +119,22 @@ namespace rssfeed
         }
 
         #endregion
+
+        private void itemGridView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            lblNumberSelected.Text = string.Format("{0} of {1} selected", lvFeed.SelectedItems.Count, lvFeed.Items.Count);
+            btnPick.IsEnabled = lvFeed.SelectedItems.Count > 0;
+        }
+
+        private async void btnPick_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (DataGroup item in lvFeed.SelectedItems)
+            {
+                await PickedItemsSource.AddItem(item.Title, item.Description, item.ImagePath);
+            }
+            await PickedItemsSource.SaveAsync();
+            Frame.BackStack.RemoveAt(Frame.BackStackDepth - 1); 
+            Frame.GoBack(); // go to picked items
+        }
     }
 }

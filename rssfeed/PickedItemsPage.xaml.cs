@@ -16,8 +16,6 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-using System.Diagnostics;
-using System.Collections.ObjectModel;
 using Windows.UI.Popups;
 
 // The Basic Page item template is documented at http://go.microsoft.com/fwlink/?LinkID=390556
@@ -27,18 +25,18 @@ namespace rssfeed
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class FeedsListPage : Page
+    public sealed partial class PickedItemsPage : Page
     {
         private NavigationHelper navigationHelper;
         private ObservableDictionary defaultViewModel = new ObservableDictionary();
 
-        public FeedsListPage()
+        public PickedItemsPage()
         {
             this.InitializeComponent();
 
             this.navigationHelper = new NavigationHelper(this);
+            this.navigationHelper.LoadState += this.NavigationHelper_LoadState;
             this.navigationHelper.SaveState += this.NavigationHelper_SaveState;
-            this.navigationHelper.LoadState += navigationHelper_LoadState;
         }
 
         /// <summary>
@@ -69,10 +67,11 @@ namespace rssfeed
         /// <see cref="Frame.Navigate(Type, Object)"/> when this page was initially requested and
         /// a dictionary of state preserved by this page during an earlier
         /// session.  The state will be null the first time a page is visited.</param>
-        private async void navigationHelper_LoadState(object sender, LoadStateEventArgs e)
+        private async void NavigationHelper_LoadState(object sender, LoadStateEventArgs e)
         {
-            var feeds = await FeedsListData.GetFeedsAsync();
-            this.DefaultViewModel["Items"] = feeds;
+            var sampleDataGroups = await PickedItemsSource.GetItemsAsync();
+            this.DefaultViewModel["Items"] = sampleDataGroups;
+            lvPickedItems_SelectionChanged(null, null);
         }
 
         /// <summary>
@@ -104,65 +103,68 @@ namespace rssfeed
         /// handlers that cannot cancel the navigation request.</param>
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
+            if (Frame.BackStackDepth > 1)
+                Frame.BackStack.RemoveAt(0);
             this.navigationHelper.OnNavigatedTo(e);
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             this.navigationHelper.OnNavigatedFrom(e);
-            lvFeeds.UpdateLayout();
         }
 
         #endregion
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void lvPickedItems_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            Frame.Navigate(typeof(AddFeedPage));
+            lblNumberSelected.Text = string.Format("{0} of {1} selected", lvPickedItems.SelectedItems.Count, lvPickedItems.Items.Count);
+            btnPost.IsEnabled = lvPickedItems.SelectedItems.Count > 0;
+            btnRemove.IsEnabled = btnPost.IsEnabled;
         }
 
-        private void lvFeeds_ItemClick(object sender, ItemClickEventArgs e)
+        private async void btnRemove_Click(object sender, RoutedEventArgs e)
         {
-            FlyoutBase flyoutBase = FlyoutBase.GetAttachedFlyout(lvFeeds);
-            int idx = ((ObservableCollection<FeedsListItem>)this.defaultViewModel["Items"]).IndexOf((FeedsListItem)e.ClickedItem);
-            lvFeeds.SelectedIndex = idx;
-            flyoutBase.ShowAt((FrameworkElement)lvFeeds.ContainerFromIndex(idx));
-        }
-
-        private async void ViewFeedButton_Click(object sender, RoutedEventArgs e)
-        {
-            DataSource.Clear();
-            bool error = false;
             IsEnabled = false;
-            try
-            {
-                var sampleDataGroups = await DataSource.GetGroupsAsync(((FeedsListItem)lvFeeds.SelectedItem).URL);
-            }
-            catch
-            {
-                error = true;
-            }
+            IList<PickedItem> selectedItems = new List<PickedItem>();
+            foreach (PickedItem item in lvPickedItems.SelectedItems)
+                selectedItems.Add(item);
+            foreach (PickedItem item in selectedItems)
+                await PickedItemsSource.DeleteItem(item);
+
+            await PickedItemsSource.SaveAsync();
             IsEnabled = true;
-            if (error)
-            {
-                MessageDialog msgbox = new MessageDialog("Error Reading feed");
-                await msgbox.ShowAsync();
-            }
-            else
-            {
-                int idx = lvFeeds.SelectedIndex;
-                Frame.Navigate(typeof(SingleFeedPage), lvFeeds.SelectedItem);
-            }
         }
 
-        private void EditButton_Click(object sender, RoutedEventArgs e)
+        private void btnPost_Click(object sender, RoutedEventArgs e)
         {
-            int idx = lvFeeds.SelectedIndex;
-            Frame.Navigate(typeof(AddFeedPage), idx);
-        }
-        private async void DeleteButton_Click(object sender, RoutedEventArgs e)
-        {
-            await FeedsListData.DeleteFeed(lvFeeds.SelectedIndex);
+            IsEnabled = false;
+            IList<PickedItem> selectedItems = new List<PickedItem>();
+            foreach (PickedItem item in lvPickedItems.SelectedItems)
+                selectedItems.Add(item); 
+
+            for (int i=0; i < selectedItems.Count; i++)
+               PickedItemsSource.PostItemToBlog(selectedItems[i], true, i == selectedItems.Count - 1 ? new MethodHandler(EndPosting) : null);
         }
 
+        public async void EndPosting()
+        {
+            //Calling the Show method of MessageDialog class  
+            //which will show the MessageBox  
+            lvPickedItems.SelectedItems.Clear();
+            await PickedItemsSource.SaveAsync();
+            IsEnabled = true;
+            MessageDialog msgbox = new MessageDialog("Posting finished");
+            await msgbox.ShowAsync();
+        }
+
+        private void GoToFeedsList(object sender, RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(FeedsListPage));
+        }
+
+        private void GoToWPSettings(object sender, RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(WPSettingsPage));
+        }
     }
 }

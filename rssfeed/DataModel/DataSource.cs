@@ -13,6 +13,28 @@ using Windows.Web.Syndication;
 
 namespace rssfeed.Data
 {
+    public class Hash
+    {
+        public static uint GetStableHash(string s)
+        {
+            uint hash = 0;
+            // if you care this can be done much faster with unsafe 
+            // using fixed char* reinterpreted as a byte*
+            foreach (byte b in System.Text.Encoding.Unicode.GetBytes(s))
+            {   
+                hash += b;
+                hash += (hash << 10);
+                hash ^= (hash >> 6);    
+            }
+            // final avalanche
+            hash += (hash << 3);
+            hash ^= (hash >> 11);
+            hash += (hash << 15);
+
+            return hash;
+        }
+    }
+
     /// <summary>
     /// group data model.
     /// </summary>
@@ -48,6 +70,10 @@ namespace rssfeed.Data
         public ObservableCollection<DataGroup> Groups
         {
             get { return this._groups; }
+        }
+
+        public static void Clear() {
+            _dataSource.Groups.Clear();
         }
 
         public static async Task<IEnumerable<DataGroup>> GetGroupsAsync(string URL)

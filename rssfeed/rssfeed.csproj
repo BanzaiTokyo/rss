@@ -88,11 +88,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ItemPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
+    <Page Include="PickedItemsPage.xaml">
       <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="PivotPage.xaml">
+    <Page Include="SingleFeedPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPSettingsPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -110,17 +114,22 @@
     <Compile Include="Common\SuspensionManager.cs" />
     <Compile Include="DataModel\DataSource.cs" />
     <Compile Include="DataModel\FeedsListData.cs" />
+    <Compile Include="DataModel\PickedItemsSource.cs" />
     <Compile Include="DataModel\SampleDataSource.cs" />
     <Compile Include="FeedsListPage.xaml.cs">
       <DependentUpon>FeedsListPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ItemPage.xaml.cs">
-      <DependentUpon>ItemPage.xaml</DependentUpon>
+    <Compile Include="PickedItemsPage.xaml.cs">
+      <DependentUpon>PickedItemsPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="PivotPage.xaml.cs">
-      <DependentUpon>PivotPage.xaml</DependentUpon>
+    <Compile Include="SingleFeedPage.xaml.cs">
+      <DependentUpon>SingleFeedPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WordpressXmlRpc.cs" />
+    <Compile Include="WPSettingsPage.xaml.cs">
+      <DependentUpon>WPSettingsPage.xaml</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
@@ -148,6 +157,12 @@
     <PRIResource Include="Strings\en-US\Resources.resw">
       <SubType>Designer</SubType>
     </PRIResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="CookComputing.XmlRpcPhone, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\CookComputing.XmlRpcPhone.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '12.0' ">
     <VisualStudioVersion>12.0</VisualStudioVersion>

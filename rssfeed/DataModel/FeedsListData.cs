@@ -6,46 +6,19 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.Serialization;
 using Windows.Storage;
-using System.Xml;
-using System.Xml.Serialization;
 using System.IO;
 using System.ComponentModel;
 
 namespace rssfeed.Data
 {
-    class Integer
-    {
-        public int Value;
-        public Integer(int _value)
-        {
-            this.Value = _value;
-        }
-    }
-
     [DataContract]
-    class FeedsListItem {
-        private string _Name;
-        private string _SiteURL;
-        private string _URL;
-        
+    class FeedsListItem {        
         [DataMember]
-        public string Name
-        {
-            get { return _Name; }
-            set { _Name = value; }
-        }
+        public string Name {get; set;}
         [DataMember]
-        public string SiteURL
-        {
-            get { return _SiteURL; }
-            set { _SiteURL = value; }
-        }
+        public string SiteURL {get; set;}
         [DataMember]
-        public string URL
-        {
-            get { return _URL; }
-            set { _URL = value; }
-        }
+        public string URL {get; set;}
 
         public FeedsListItem(String _name, String _siteurl, String _url)
         {

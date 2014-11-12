@@ -1,14 +1,13 @@
 ﻿using rssfeed.Common;
-using rssfeed.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
-using System.Windows.Input;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Graphics.Display;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -16,27 +15,29 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using Windows.Storage;
 
-// The Pivot Application template is documented at http://go.microsoft.com/fwlink/?LinkID=391641
+// The Basic Page item template is documented at http://go.microsoft.com/fwlink/?LinkID=390556
 
 namespace rssfeed
 {
     /// <summary>
-    /// A page that displays details for a single item within a group.
+    /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class ItemPage : Page
+    public sealed partial class WPSettingsPage : Page
     {
-        private readonly NavigationHelper navigationHelper;
-        private readonly ObservableDictionary defaultViewModel = new ObservableDictionary();
+        private NavigationHelper navigationHelper;
+        private ObservableDictionary defaultViewModel = new ObservableDictionary();
+        private IPropertySet settings = ApplicationData.Current.LocalSettings.Values;
 
-        public ItemPage()
+        public WPSettingsPage()
         {
             this.InitializeComponent();
 
             this.navigationHelper = new NavigationHelper(this);
             this.navigationHelper.LoadState += this.NavigationHelper_LoadState;
             this.navigationHelper.SaveState += this.NavigationHelper_SaveState;
-        } 
+        }
 
         /// <summary>
         /// Gets the <see cref="NavigationHelper"/> associated with this <see cref="Page"/>.
@@ -56,21 +57,26 @@ namespace rssfeed
         }
 
         /// <summary>
-        /// Populates the page with content passed during navigation. Any saved state is also
+        /// Populates the page with content passed during navigation.  Any saved state is also
         /// provided when recreating a page from a prior session.
         /// </summary>
         /// <param name="sender">
-        /// The source of the event; typically <see cref="NavigationHelper"/>.
+        /// The source of the event; typically <see cref="NavigationHelper"/>
         /// </param>
         /// <param name="e">Event data that provides both the navigation parameter passed to
         /// <see cref="Frame.Navigate(Type, Object)"/> when this page was initially requested and
         /// a dictionary of state preserved by this page during an earlier
         /// session.  The state will be null the first time a page is visited.</param>
-        private async void NavigationHelper_LoadState(object sender, LoadStateEventArgs e)
+        private void NavigationHelper_LoadState(object sender, LoadStateEventArgs e)
         {
-            // TODO: Create an appropriate data model for your problem domain to replace the sample data.
-            var item = await SampleDataSource.GetItemAsync((string)e.NavigationParameter);
-            this.DefaultViewModel["Item"] = item;
+
+            if (settings.ContainsKey("BlogURL"))
+                txtBlogURL.Text = (string)settings["BlogURL"];
+            if (settings.ContainsKey("Username"))
+                txtUsername.Text = (string)settings["Username"];
+            if (settings.ContainsKey("Password"))
+                txtPassword.Password = (string)settings["Password"];
+            lblErrorMessage.Visibility = Visibility.Collapsed;
         }
 
         /// <summary>
@@ -78,12 +84,11 @@ namespace rssfeed
         /// page is discarded from the navigation cache.  Values must conform to the serialization
         /// requirements of <see cref="SuspensionManager.SessionState"/>.
         /// </summary>
-        /// <param name="sender">The source of the event; typically <see cref="NavigationHelper"/>.</param>
+        /// <param name="sender">The source of the event; typically <see cref="NavigationHelper"/></param>
         /// <param name="e">Event data that provides an empty dictionary to be populated with
         /// serializable state.</param>
         private void NavigationHelper_SaveState(object sender, SaveStateEventArgs e)
         {
-            // TODO: Save the unique state of the page here.
         }
 
         #region NavigationHelper registration
@@ -112,5 +117,36 @@ namespace rssfeed
         }
 
         #endregion
+
+        private void SaveSettings(object sender, RoutedEventArgs e)
+        {
+            string error = string.Empty;
+            Uri uri = null;
+
+            if (string.IsNullOrEmpty(txtBlogURL.Text) || !Uri.TryCreate(txtBlogURL.Text, UriKind.Absolute, out uri))
+            {
+                error = "Blog URL must be valid URL";
+            }
+            else if (string.IsNullOrEmpty(txtUsername.Text))
+            {
+                error = "Username cannot be empty";
+            }
+
+            if (!string.IsNullOrEmpty(error))
+            {
+                lblErrorMessage.Visibility = Visibility.Visible;
+                lblErrorMessage.Text = error;
+                return;
+            }
+
+            settings["BlogURL"] = txtBlogURL.Text;
+            settings["Username"] = txtUsername.Text;
+            settings["Password"] = txtPassword.Password;
+
+            if (Frame.CanGoBack)
+                Frame.GoBack();
+            else
+                Frame.Navigate(typeof(PickedItemsPage));
+        }
     }
 }
