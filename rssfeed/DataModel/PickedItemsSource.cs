@@ -118,23 +118,30 @@ namespace rssfeed.Data
         {
             if (_dataSource.Items.Where(itm => itm.Title == _title).ToList().Count > 0)
                 return;
-
-            string filename = rssfeed.Data.Hash.GetStableHash(_title).ToString();
-            HttpClient client = new HttpClient();
-            var buffer = await client.GetBufferAsync(new Uri(_imagePath));
-            MemoryStream readStream = new MemoryStream(buffer.ToArray());
-            BitmapDecoder decoder = await BitmapDecoder.CreateAsync(readStream.AsRandomAccessStream());
-            var pixels = await decoder.GetPixelDataAsync();
-            StorageFile savedPicture = await ApplicationData.Current.LocalFolder.CreateFileAsync(filename, CreationCollisionOption.GenerateUniqueName);
-            IRandomAccessStream writeStream = await savedPicture.OpenAsync(FileAccessMode.ReadWrite);
-            BitmapEncoder encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, writeStream);
-            encoder.SetPixelData(decoder.BitmapPixelFormat, BitmapAlphaMode.Ignore,
-                        decoder.PixelWidth, decoder.PixelHeight,
-                        decoder.DpiX, decoder.DpiY,
-                        pixels.DetachPixelData());
-            await encoder.FlushAsync();
-            writeStream.Dispose();
-            PickedItem item = new PickedItem(_title, _content, savedPicture.Path);
+            try
+            {
+                string filename = rssfeed.Data.Hash.GetStableHash(_title).ToString();
+                HttpClient client = new HttpClient();
+                var buffer = await client.GetBufferAsync(new Uri(_imagePath));
+                MemoryStream readStream = new MemoryStream(buffer.ToArray());
+                BitmapDecoder decoder = await BitmapDecoder.CreateAsync(readStream.AsRandomAccessStream());
+                var pixels = await decoder.GetPixelDataAsync();
+                StorageFile savedPicture = await ApplicationData.Current.LocalFolder.CreateFileAsync(filename, CreationCollisionOption.GenerateUniqueName);
+                IRandomAccessStream writeStream = await savedPicture.OpenAsync(FileAccessMode.ReadWrite);
+                BitmapEncoder encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, writeStream);
+                encoder.SetPixelData(decoder.BitmapPixelFormat, BitmapAlphaMode.Ignore,
+                            decoder.PixelWidth, decoder.PixelHeight,
+                            decoder.DpiX, decoder.DpiY,
+                            pixels.DetachPixelData());
+                await encoder.FlushAsync();
+                writeStream.Dispose();
+                _imagePath = savedPicture.Path;
+            }
+            catch
+            {
+                _imagePath = string.Empty;
+            }
+            PickedItem item = new PickedItem(_title, _content, _imagePath);
             _dataSource.Items.Add(item);
         }
 
@@ -157,72 +164,28 @@ namespace rssfeed.Data
         public static async void PostItemToBlog(PickedItem item, bool DeleteAfterPost, MethodHandler Finalize = null)
         {
             IPropertySet settings = ApplicationData.Current.LocalSettings.Values;
-
             WordpressWrapper proxy = new WordpressWrapper();
             proxy.Url = (string)settings["BlogURL"];
-            var filename = Path.GetFileName(item.Thumbnail);
-            var file = await ApplicationData.Current.LocalFolder.OpenStreamForReadAsync(filename);
-            byte[] bytes = new byte[file.Length];
-            file.Read(bytes, 0, (int)file.Length);
+            bool error = false;
             XmlRpcStruct picture = new XmlRpcStruct();
-            picture.Add("bits", bytes);
-            picture.Add("name", filename + ".jpg");
-            picture.Add("type", "image/jpg");
-            proxy.BeginNewMediaObject(0, (string)settings["Username"], (string)settings["Password"], picture, asr =>
+            try
             {
-                XmlRpcStruct resultMediaObject;
-                try
-                {
-                    resultMediaObject = proxy.EndNewMediaObject(asr);
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine("Error mediaObject {0}", ex);
-                    if (Finalize != null)
-                    {
-                        Debug.WriteLine("Finalizing");
-                        Finalize();
-                    }
-                    return;
-                }
-                XmlRpcStruct post = new XmlRpcStruct();
-                post.Add("dateCreated", DateTime.Now);
-                post.Add("description", item.Content);
-                post.Add("title", item.Title);
-                post.Add("wp_post_thumbnail", resultMediaObject["id"]);
-                proxy.BeginNewPost(0, (string)settings["Username"], (string)settings["Password"], post, true, async asr1 =>
-                {
-                    string resultPost;
-                    try
-                    {
-                        resultPost = proxy.EndNewPost(asr1);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine("Error newPost {0}", ex);
-                        if (Finalize != null)
-                        {
-                            Debug.WriteLine("Finalizing");
-                            Finalize();
-                        }
-                        return;
-                    }
-                    Debug.WriteLine(resultPost);
-                    await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
-                    {
-                        if (DeleteAfterPost)
-                        {
-                            Debug.WriteLine("Deleting {0}", item.Title);
-                                await DeleteItem(item);
-                        }
-                        if (Finalize != null)
-                        {
-                            Debug.WriteLine("Finalizing");
-                            Finalize();
-                        }
-                    });
-                }); // of BeginNewPost
-            }); // of BeginNewMediaObject
+                var filename = Path.GetFileName(item.Thumbnail);
+                var file = await ApplicationData.Current.LocalFolder.OpenStreamForReadAsync(filename);
+                byte[] bytes = new byte[file.Length];
+                file.Read(bytes, 0, (int)file.Length);
+                picture.Add("bits", bytes);
+                picture.Add("name", filename + ".jpg");
+                picture.Add("type", "image/jpg");
+            }
+            catch
+            {
+                error = true;
+            }
+            if (error)
+                PostContentToBlog(proxy, item, null, DeleteAfterPost, Finalize);
+            else
+                PostPictureToBlog(proxy, item, picture, DeleteAfterPost, Finalize);
             /*
             proxy.BeginGetRecentPosts(0, (string)settings["Username"], (string)settings["Password"], 1, async asr =>
             {
@@ -244,6 +207,72 @@ namespace rssfeed.Data
 
             });*/
             Debug.WriteLine("PostItem out");
+        }
+
+        private static void PostPictureToBlog(WordpressWrapper wp, PickedItem item, XmlRpcStruct picture, bool DeleteAfterPost, MethodHandler Finalize = null) {
+            IPropertySet settings = ApplicationData.Current.LocalSettings.Values;
+            wp.BeginNewMediaObject(0, (string)settings["Username"], (string)settings["Password"], picture, asr =>
+            {
+                XmlRpcStruct resultMediaObject;
+                try
+                {
+                    resultMediaObject = wp.EndNewMediaObject(asr);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine("Error mediaObject {0}", ex);
+                    if (Finalize != null)
+                    {
+                        Debug.WriteLine("Finalizing");
+                        Finalize();
+                    }
+                    return;
+                }
+                PostContentToBlog(wp, item, resultMediaObject["id"], DeleteAfterPost, Finalize);
+            }); // of BeginNewMediaObject
+        }
+
+        private static void PostContentToBlog(WordpressWrapper wp, PickedItem item, object ThumbnailID, bool DeleteAfterPost, MethodHandler Finalize = null)
+        {
+            XmlRpcStruct post = new XmlRpcStruct();
+            post.Add("dateCreated", DateTime.Now);
+            post.Add("description", item.Content);
+            post.Add("title", item.Title);
+            if (ThumbnailID != null)
+                post.Add("wp_post_thumbnail", ThumbnailID);
+            IPropertySet settings = ApplicationData.Current.LocalSettings.Values;
+            wp.BeginNewPost(0, (string)settings["Username"], (string)settings["Password"], post, true, async asr1 =>
+            {
+                string resultPost;
+                try
+                {
+                    resultPost = wp.EndNewPost(asr1);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine("Error newPost {0}", ex);
+                    if (Finalize != null)
+                    {
+                        Debug.WriteLine("Finalizing");
+                        Finalize();
+                    }
+                    return;
+                }
+                Debug.WriteLine(resultPost);
+                await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
+                {
+                    if (DeleteAfterPost)
+                    {
+                        Debug.WriteLine("Deleting {0}", item.Title);
+                        await DeleteItem(item);
+                    }
+                    if (Finalize != null)
+                    {
+                        Debug.WriteLine("Finalizing");
+                        Finalize();
+                    }
+                });
+            }); // of BeginNewPost
         }
     }
 }

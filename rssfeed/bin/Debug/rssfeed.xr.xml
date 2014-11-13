@@ -5,12 +5,12 @@
     <RootPropertyPathName Name="Items" />
     <RootPropertyPathName Name="URL" />
     <RootPropertyPathName Name="Name" />
-    <RootPropertyPathName Name="Item" />
+    <RootPropertyPathName Name="Content" />
     <RootPropertyPathName Name="Title" />
-    <RootPropertyPathName Name="SecondGroup" />
+    <RootPropertyPathName Name="Thumbnail" />
     <RootPropertyPathName Name="Description" />
-    <RootPropertyPathName Name="FirstGroup" />
     <RootPropertyPathName Name="ImagePath" />
+    <RootPropertyPathName Name="Data" />
   </Roots.PropertyPathNames>
   <Roots.RootTypes>
     <RootType FullName="Windows.UI.Xaml.Application" />
@@ -20,7 +20,6 @@
       <RootProperty Name="DataContext" />
       <RootProperty Name="Transitions" />
       <RootProperty Name="Resources" />
-      <RootProperty Name="BottomAppBar" />
     </RootType>
     <RootType FullName="Microsoft.Xaml.Tools.DirectUI.ProxyTypes.ThemeResourceExtension" />
     <RootType FullName="Windows.UI.Xaml.Controls.Grid">
@@ -29,7 +28,6 @@
       <RootProperty Name="Children" />
       <RootProperty Name="Margin" />
       <RootProperty Name="HorizontalAlignment" />
-      <RootProperty Name="Width" />
       <RootProperty Name="IsTapEnabled" />
       <RootProperty Name="IsRightTapEnabled" />
       <RootProperty Name="IsHoldingEnabled" />
@@ -56,6 +54,7 @@
       <RootProperty Name="Width" />
       <RootProperty Name="Header" />
       <RootProperty Name="AllowDrop" />
+      <RootProperty Name="InputScope" />
     </RootType>
     <RootType FullName="Windows.UI.Xaml.Controls.TextBlock">
       <RootProperty Name="Visibility" />
@@ -68,6 +67,8 @@
       <RootProperty Name="FontWeight" />
       <RootProperty Name="VerticalAlignment" />
       <RootProperty Name="LineHeight" />
+      <RootProperty Name="HorizontalAlignment" />
+      <RootProperty Name="TextWrapping" />
       <RootProperty Name="Height" />
     </RootType>
     <RootType FullName="Windows.UI.Xaml.Controls.Button">
@@ -82,14 +83,14 @@
       <RootProperty Name="RelativeSource" />
       <RootProperty Name="Source" />
     </RootType>
-    <RootType FullName="Windows.UI.Xaml.Data.RelativeSource" />
+    <RootType FullName="Windows.UI.Xaml.Data.RelativeSource">
+      <RootProperty Name="Mode" />
+    </RootType>
     <RootType FullName="Windows.UI.Xaml.Media.Animation.NavigationThemeTransition">
       <RootProperty Name="DefaultNavigationTransitionInfo" />
     </RootType>
     <RootType FullName="Windows.UI.Xaml.Media.Animation.CommonNavigationTransitionInfo">
       <RootProperty Name="IsStaggeringEnabled" />
-      <RootMethod Name="GetIsStaggerElement" />
-      <RootMethod Name="SetIsStaggerElement" />
     </RootType>
     <RootType FullName="Windows.UI.Xaml.Data.CollectionViewSource">
       <RootProperty Name="Source" />
@@ -101,8 +102,9 @@
       <RootProperty Name="ItemsSource" />
       <RootProperty Name="IsItemClickEnabled" />
       <RootProperty Name="ItemTemplate" />
+      <RootProperty Name="SelectionMode" />
       <RootEvent Name="ItemClick" />
-      <RootEvent Name="Loaded" />
+      <RootEvent Name="SelectionChanged" />
     </RootType>
     <RootType FullName="Windows.UI.Xaml.Controls.Primitives.FlyoutBase">
       <RootMethod Name="GetAttachedFlyout" />
@@ -120,32 +122,6 @@
       <RootProperty Name="Template" />
     </RootType>
     <RootType FullName="rssfeed.FeedsListPage" />
-    <RootType FullName="Windows.UI.Xaml.Media.Animation.ContinuumNavigationTransitionInfo">
-      <RootMethod Name="GetExitElementContainer" />
-      <RootMethod Name="SetExitElementContainer" />
-    </RootType>
-    <RootType FullName="rssfeed.ItemPage" />
-    <RootType FullName="Windows.UI.Xaml.Controls.Pivot">
-      <RootProperty Name="Title" />
-      <RootProperty Name="Items" />
-      <RootMethod Name="GetSlideInAnimationGroup" />
-      <RootMethod Name="SetSlideInAnimationGroup" />
-    </RootType>
-    <RootType FullName="Windows.UI.Xaml.Controls.PivotItem">
-      <RootProperty Name="Margin" />
-      <RootProperty Name="Header" />
-      <RootProperty Name="DataContext" />
-      <RootProperty Name="Content" />
-    </RootType>
-    <RootType FullName="Windows.UI.Xaml.Controls.GridView">
-      <RootProperty Name="TabIndex" />
-      <RootProperty Name="ItemsSource" />
-      <RootProperty Name="SelectionMode" />
-      <RootProperty Name="IsSwipeEnabled" />
-      <RootProperty Name="IsItemClickEnabled" />
-      <RootProperty Name="ItemTemplate" />
-      <RootEvent Name="ItemClick" />
-    </RootType>
     <RootType FullName="Windows.UI.Xaml.Automation.AutomationProperties">
       <RootMethod Name="GetAutomationId" />
       <RootMethod Name="SetAutomationId" />
@@ -156,21 +132,21 @@
       <RootProperty Name="Background" />
       <RootProperty Name="Margin" />
       <RootProperty Name="HorizontalAlignment" />
-      <RootProperty Name="Width" />
       <RootProperty Name="Child" />
     </RootType>
     <RootType FullName="Windows.UI.Xaml.Controls.Image">
       <RootProperty Name="Source" />
     </RootType>
-    <RootType FullName="Windows.UI.Xaml.Controls.CommandBar">
-      <RootProperty Name="PrimaryCommands" />
-      <RootProperty Name="SecondaryCommands" />
+    <RootType FullName="rssfeed.PickedItemsPage" />
+    <RootType FullName="rssfeed.SingleFeedPage" />
+    <RootType FullName="Windows.UI.Xaml.Controls.PasswordBox">
+      <RootProperty Name="HorizontalAlignment" />
+      <RootProperty Name="Margin" />
+      <RootProperty Name="VerticalAlignment" />
+      <RootProperty Name="Width" />
+      <RootProperty Name="Header" />
+      <RootProperty Name="AllowDrop" />
     </RootType>
-    <RootType FullName="Windows.UI.Xaml.Controls.AppBarButton">
-      <RootProperty Name="Label" />
-      <RootProperty Name="Icon" />
-      <RootEvent Name="Click" />
-    </RootType>
-    <RootType FullName="rssfeed.PivotPage" />
+    <RootType FullName="rssfeed.WPSettingsPage" />
   </Roots.RootTypes>
 </Roots>

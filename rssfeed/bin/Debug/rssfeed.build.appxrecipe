@@ -19,6 +19,9 @@
     <AppxPackagedFile Include="C:\Users\Toxa\Documents\Visual Studio 2013\Projects\rss\rssfeed\bin\Debug\rssfeed.exe">
       <PackagePath>rssfeed.exe</PackagePath>
     </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\Toxa\Documents\Visual Studio 2013\Projects\rss\rssfeed\CookComputing.XmlRpcPhone.dll">
+      <PackagePath>CookComputing.XmlRpcPhone.dll</PackagePath>
+    </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Toxa\Documents\Visual Studio 2013\Projects\rss\rssfeed\Assets\Logo.scale-240.png">
       <PackagePath>Assets\Logo.scale-240.png</PackagePath>
       <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
@@ -61,11 +64,14 @@
     <AppxPackagedFile Include="C:\Users\Toxa\Documents\Visual Studio 2013\Projects\rss\rssfeed\bin\Debug\FeedsListPage.xbf">
       <PackagePath>FeedsListPage.xbf</PackagePath>
     </AppxPackagedFile>
-    <AppxPackagedFile Include="C:\Users\Toxa\Documents\Visual Studio 2013\Projects\rss\rssfeed\bin\Debug\ItemPage.xbf">
-      <PackagePath>ItemPage.xbf</PackagePath>
+    <AppxPackagedFile Include="C:\Users\Toxa\Documents\Visual Studio 2013\Projects\rss\rssfeed\bin\Debug\PickedItemsPage.xbf">
+      <PackagePath>PickedItemsPage.xbf</PackagePath>
     </AppxPackagedFile>
-    <AppxPackagedFile Include="C:\Users\Toxa\Documents\Visual Studio 2013\Projects\rss\rssfeed\bin\Debug\PivotPage.xbf">
-      <PackagePath>PivotPage.xbf</PackagePath>
+    <AppxPackagedFile Include="C:\Users\Toxa\Documents\Visual Studio 2013\Projects\rss\rssfeed\bin\Debug\SingleFeedPage.xbf">
+      <PackagePath>SingleFeedPage.xbf</PackagePath>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Users\Toxa\Documents\Visual Studio 2013\Projects\rss\rssfeed\bin\Debug\WPSettingsPage.xbf">
+      <PackagePath>WPSettingsPage.xbf</PackagePath>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Toxa\Documents\Visual Studio 2013\Projects\rss\rssfeed\bin\Debug\rssfeed.xr.xml">
       <PackagePath>rssfeed.xr.xml</PackagePath>
