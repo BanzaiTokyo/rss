@@ -114,10 +114,10 @@ namespace rssfeed.Data
             _dataSource.PropChanged("Items");
         }
 
-        public static async Task AddItem(String _title, String _content, String _imagePath)
+        public static async Task<bool> AddItem(String _title, String _content, String _imagePath)
         {
             if (_dataSource.Items.Where(itm => itm.Title == _title).ToList().Count > 0)
-                return;
+                return false;
             try
             {
                 string filename = rssfeed.Data.Hash.GetStableHash(_title).ToString();
@@ -143,6 +143,7 @@ namespace rssfeed.Data
             }
             PickedItem item = new PickedItem(_title, _content, _imagePath);
             _dataSource.Items.Add(item);
+            return true;
         }
 
         public static async Task DeleteItem(PickedItem item)

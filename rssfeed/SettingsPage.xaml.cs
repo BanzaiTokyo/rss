@@ -24,13 +24,13 @@ namespace rssfeed
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class WPSettingsPage : Page
+    public sealed partial class SettingsPage : Page
     {
         private NavigationHelper navigationHelper;
         private ObservableDictionary defaultViewModel = new ObservableDictionary();
         private IPropertySet settings = ApplicationData.Current.LocalSettings.Values;
 
-        public WPSettingsPage()
+        public SettingsPage()
         {
             this.InitializeComponent();
 
@@ -76,6 +76,11 @@ namespace rssfeed
                 txtUsername.Text = (string)settings["Username"];
             if (settings.ContainsKey("Password"))
                 txtPassword.Password = (string)settings["Password"];
+            if (settings.ContainsKey("Keywords"))
+                txtKeywords.Text = ((string)settings["Keywords"]).Replace(",", ", ");
+            if (settings.ContainsKey("UpdatePeriod"))
+                UpdatePeriod.Value = (double)settings["UpdatePeriod"];
+
             lblErrorMessage.Visibility = Visibility.Collapsed;
         }
 
@@ -123,6 +128,18 @@ namespace rssfeed
             string error = string.Empty;
             Uri uri = null;
 
+            List<string> keywords = new List<string>();
+            foreach (string keyword in txtKeywords.Text.Split(','))
+            {
+                string s = keyword.Trim();
+                if (s.Length > 0)
+                    keywords.Add(s);
+            }
+            if (keywords.Count == 0)
+            {
+                error = "You must specify some keywords in order to pick records from RSS feeds";
+            }
+
             if (string.IsNullOrEmpty(txtBlogURL.Text) || !Uri.TryCreate(txtBlogURL.Text, UriKind.Absolute, out uri))
             {
                 error = "Blog URL must be valid URL";
@@ -142,11 +159,19 @@ namespace rssfeed
             settings["BlogURL"] = txtBlogURL.Text;
             settings["Username"] = txtUsername.Text;
             settings["Password"] = txtPassword.Password;
+            settings["Keywords"] = String.Join(",", keywords);
+            settings["UpdatePeriod"] = UpdatePeriod.Value;
 
             if (Frame.CanGoBack)
                 Frame.GoBack();
             else
                 Frame.Navigate(typeof(PickedItemsPage));
+        }
+
+        private void UpdatePeriod_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+        {
+            if (txtDays != null)
+                txtDays.Text = string.Format("{0} days", e.NewValue);
         }
     }
 }

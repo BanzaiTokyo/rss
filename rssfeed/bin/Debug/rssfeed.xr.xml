@@ -11,6 +11,7 @@
     <RootPropertyPathName Name="Description" />
     <RootPropertyPathName Name="ImagePath" />
     <RootPropertyPathName Name="Data" />
+    <RootPropertyPathName Name="Value" />
   </Roots.PropertyPathNames>
   <Roots.RootTypes>
     <RootType FullName="Windows.UI.Xaml.Application" />
@@ -46,6 +47,8 @@
       <RootProperty Name="Children" />
       <RootProperty Name="VerticalAlignment" />
       <RootProperty Name="Background" />
+      <RootProperty Name="HorizontalAlignment" />
+      <RootProperty Name="Orientation" />
     </RootType>
     <RootType FullName="Windows.UI.Xaml.Controls.TextBox">
       <RootProperty Name="HorizontalAlignment" />
@@ -70,6 +73,7 @@
       <RootProperty Name="HorizontalAlignment" />
       <RootProperty Name="TextWrapping" />
       <RootProperty Name="Height" />
+      <RootProperty Name="TextAlignment" />
     </RootType>
     <RootType FullName="Windows.UI.Xaml.Controls.Button">
       <RootProperty Name="Content" />
@@ -82,6 +86,8 @@
     <RootType FullName="Windows.UI.Xaml.Data.Binding">
       <RootProperty Name="RelativeSource" />
       <RootProperty Name="Source" />
+      <RootProperty Name="ElementName" />
+      <RootProperty Name="Path" />
     </RootType>
     <RootType FullName="Windows.UI.Xaml.Data.RelativeSource">
       <RootProperty Name="Mode" />
@@ -122,6 +128,13 @@
       <RootProperty Name="Template" />
     </RootType>
     <RootType FullName="rssfeed.FeedsListPage" />
+    <RootType FullName="Windows.UI.Xaml.Controls.Primitives.Popup">
+      <RootProperty Name="Width" />
+      <RootProperty Name="Height" />
+      <RootProperty Name="HorizontalAlignment" />
+      <RootProperty Name="VerticalAlignment" />
+      <RootProperty Name="Child" />
+    </RootType>
     <RootType FullName="Windows.UI.Xaml.Automation.AutomationProperties">
       <RootMethod Name="GetAutomationId" />
       <RootMethod Name="SetAutomationId" />
@@ -133,12 +146,25 @@
       <RootProperty Name="Margin" />
       <RootProperty Name="HorizontalAlignment" />
       <RootProperty Name="Child" />
+      <RootProperty Name="BorderBrush" />
+      <RootProperty Name="BorderThickness" />
+      <RootProperty Name="CornerRadius" />
     </RootType>
     <RootType FullName="Windows.UI.Xaml.Controls.Image">
       <RootProperty Name="Source" />
     </RootType>
+    <RootType FullName="Windows.UI.Xaml.Controls.ProgressBar">
+      <RootProperty Name="HorizontalAlignment" />
+      <RootProperty Name="Width" />
+    </RootType>
     <RootType FullName="rssfeed.PickedItemsPage" />
     <RootType FullName="rssfeed.SingleFeedPage" />
+    <RootType FullName="Windows.UI.Xaml.Controls.Slider">
+      <RootProperty Name="Width" />
+      <RootProperty Name="Minimum" />
+      <RootProperty Name="Margin" />
+      <RootEvent Name="ValueChanged" />
+    </RootType>
     <RootType FullName="Windows.UI.Xaml.Controls.PasswordBox">
       <RootProperty Name="HorizontalAlignment" />
       <RootProperty Name="Margin" />
@@ -147,6 +173,6 @@
       <RootProperty Name="Header" />
       <RootProperty Name="AllowDrop" />
     </RootType>
-    <RootType FullName="rssfeed.WPSettingsPage" />
+    <RootType FullName="rssfeed.SettingsPage" />
   </Roots.RootTypes>
 </Roots>

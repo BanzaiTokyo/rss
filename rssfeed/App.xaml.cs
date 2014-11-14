@@ -109,7 +109,7 @@ namespace rssfeed
                 if (ApplicationData.Current.LocalSettings.Values.ContainsKey("BlogURL"))
                     rootClass = typeof(PickedItemsPage);
                 else
-                    rootClass = typeof(WPSettingsPage);
+                    rootClass = typeof(SettingsPage);
                 if (!rootFrame.Navigate(rootClass, e.Arguments))
                 {
                     throw new Exception("Failed to create initial page");

@@ -1,4 +1,4 @@
-﻿<Page
+﻿<Page x:Name="Page"
     x:Class="rssfeed.PickedItemsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -27,7 +27,7 @@
             d:Source="{Binding Groups, Source={d:DesignData Source=/DataModel/SampleData.json, Type=data:SampleDataSource}}"/>
     </Page.Resources>
 
-    <Grid>
+    <Grid x:Name="mainGrid">
 
         <Grid.ChildrenTransitions>
             <TransitionCollection>
@@ -41,6 +41,18 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+
+        <Popup x:Name="msgProgress" Grid.Row="1" Width="200" Height="120" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Border x:Name="popupInner" BorderBrush="{StaticResource ApplicationForegroundThemeBrush}" 
+                Background="{StaticResource ApplicationPageBackgroundThemeBrush}"
+                BorderThickness="2">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock x:Name="pgsText" Text="Read {0} of {1} feeds" Style="{ThemeResource TitleTextBlockStyle}" FontSize="16" TextAlignment="Center"/>
+                    <ProgressBar x:Name="pgsProgress" HorizontalAlignment="Center" Width="190"/>
+                    <Button Content="Stop" HorizontalAlignment="Center" Click="StopScan" />
+                </StackPanel>
+            </Border>
+        </Popup>
 
         <!-- Title Panel -->
         <StackPanel Grid.Row="0" Margin="19,0,0,0">
@@ -74,9 +86,10 @@
             </ListView.ItemTemplate>
         </ListView>
         <TextBlock x:Name="lblNumberSelected" HorizontalAlignment="Left" Margin="19,18.667,0,0" Grid.Row="2" TextWrapping="Wrap" Text="0 of X selected" VerticalAlignment="Top" FontSize="18"/>
-        <Button x:Name="btnRemove" Content="Remove" HorizontalAlignment="Right" Margin="0,-0.5,130,0" Grid.Row="2" VerticalAlignment="Top" Click="btnRemove_Click"/>
+        <Button x:Name="btnRemove" Content="Remove" HorizontalAlignment="Right" Margin="0,-0.5,130,0" Grid.Row="2" VerticalAlignment="Top" Click="btnRemove_Click" />
         <Button x:Name="btnPost" Content="Post" HorizontalAlignment="Right" Margin="0,-0.5,10,0" Grid.Row="2" VerticalAlignment="Top" Click="btnPost_Click"/>
-        <Button Content="View RSS Feeds" HorizontalAlignment="Left" Grid.Row="3" VerticalAlignment="Top" Click="GoToFeedsList" Margin="19,0.5,0,0"/>
-        <Button Content="Wordpress settings" HorizontalAlignment="Right" Margin="0,-0.5,10,0" Grid.Row="3" VerticalAlignment="Top" Click="GoToWPSettings"/>
+        <Button x:Name="btnFeedsList" Content="Feeds List" HorizontalAlignment="Left" Grid.Row="3" VerticalAlignment="Top" Click="GoToFeedsList" Margin="10,0.5,0,0"/>
+        <Button x:Name="btnScanFeeds" Content="Scan Feeds" HorizontalAlignment="Center" Grid.Row="3" VerticalAlignment="Top" Click="btnScanFeeds_Click" />
+        <Button x:Name="btnSettings" Content="Settings" HorizontalAlignment="Right" Margin="0,-0.5,10,0" Grid.Row="3" VerticalAlignment="Top" Click="GoToWPSettings"/>
     </Grid>
 </Page>

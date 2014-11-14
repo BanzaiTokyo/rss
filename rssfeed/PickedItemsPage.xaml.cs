@@ -2,6 +2,7 @@
 using rssfeed.Data;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -17,6 +18,8 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using Windows.UI.Popups;
+using Windows.Storage;
+using System.Diagnostics;
 
 // The Basic Page item template is documented at http://go.microsoft.com/fwlink/?LinkID=390556
 
@@ -29,6 +32,7 @@ namespace rssfeed
     {
         private NavigationHelper navigationHelper;
         private ObservableDictionary defaultViewModel = new ObservableDictionary();
+        public bool ButtonsEnabled = true;
 
         public PickedItemsPage()
         {
@@ -137,22 +141,29 @@ namespace rssfeed
 
         private void btnPost_Click(object sender, RoutedEventArgs e)
         {
-            IsEnabled = false;
+            EnableButtons(false);
             IList<PickedItem> selectedItems = new List<PickedItem>();
             foreach (PickedItem item in lvPickedItems.SelectedItems)
-                selectedItems.Add(item); 
-
-            for (int i=0; i < selectedItems.Count; i++)
+                selectedItems.Add(item);
+            pgsProgress.Maximum = selectedItems.Count;
+            pgsProgress.Value = 0;
+            pgsText.Text = "Posting...";
+            msgProgress.IsOpen = true;
+            for (int i = 0; i < selectedItems.Count; i++) {
+                if (!msgProgress.IsOpen)
+                    break;
                PickedItemsSource.PostItemToBlog(selectedItems[i], true, i == selectedItems.Count - 1 ? new MethodHandler(EndPosting) : null);
+               pgsText.Text = string.Format("Posted {0} of {1} posts", new object[] { i + 1, selectedItems.Count });
+               pgsProgress.Value = i + 1;
+            }
         }
 
         public async void EndPosting()
         {
-            //Calling the Show method of MessageDialog class  
-            //which will show the MessageBox  
+            msgProgress.IsOpen = false;
             lvPickedItems.SelectedItems.Clear();
             await PickedItemsSource.SaveAsync();
-            IsEnabled = true;
+            EnableButtons(true);
             MessageDialog msgbox = new MessageDialog("Posting finished");
             await msgbox.ShowAsync();
         }
@@ -164,7 +175,76 @@ namespace rssfeed
 
         private void GoToWPSettings(object sender, RoutedEventArgs e)
         {
-            Frame.Navigate(typeof(WPSettingsPage));
+            Frame.Navigate(typeof(SettingsPage));
+        }
+
+        private async void btnScanFeeds_Click(object sender, RoutedEventArgs e)
+        {
+            var Feeds = await FeedsListData.GetFeedsAsync();
+            int numFeeds = ((ObservableCollection<FeedsListItem>)Feeds).Count;
+            IPropertySet settings = ApplicationData.Current.LocalSettings.Values;
+            int i, numAdded = 0;
+            string[] keywords = null;
+            if (settings.ContainsKey("Keywords"))
+                keywords = ((string)settings["Keywords"]).Split(',');
+
+            EnableButtons(false);
+            i = 0;
+            msgProgress.IsOpen = true;
+            pgsProgress.Maximum = numFeeds - 1;
+            foreach(FeedsListItem feed in Feeds) 
+            {
+                if (!msgProgress.IsOpen)
+                    break;
+                pgsText.Text = string.Format("Read {0} of {1} feeds", i, numFeeds);
+                pgsProgress.Value = i;
+                IEnumerable<DataGroup> posts;
+                try
+                {
+                    posts = await DataSource.GetGroupsAsync(feed.URL);
+                }
+                catch
+                {
+                    continue;
+                }
+                foreach (DataGroup post in posts) {
+                    int numFound = 0;
+                    string title = post.Title.ToLower();
+                    foreach (string keyword in keywords)
+                    {
+                        if (title.IndexOf(keyword.ToLower()) >= 0)
+                            numFound++;
+                    }
+                    Debug.WriteLine("{0} {1}", new object[] {numFound, post.Title});
+                    if (numFound == keywords.Count())
+                    {
+                        bool added = await PickedItemsSource.AddItem(post.Title, post.Description, post.ImagePath);
+                        if (added)
+                            numAdded++;
+                    }
+                }
+                i++;
+            } // of feeds cycle
+            if (numAdded > 0)
+            {
+                await PickedItemsSource.SaveAsync();
+            }
+            EnableButtons(true);
+            msgProgress.IsOpen = false;
+            MessageDialog msgbox = new MessageDialog(string.Format("Scan finished, {0} posts added to preview", numAdded));
+            await msgbox.ShowAsync();
+        }
+
+        private void StopScan(object sender, RoutedEventArgs e)
+        {
+            msgProgress.IsOpen = false;
+        }
+
+        private void EnableButtons(bool enabled)
+        {
+            btnRemove.IsEnabled = btnPost.IsEnabled = btnFeedsList.IsEnabled = btnScanFeeds.IsEnabled = btnSettings.IsEnabled = enabled;
+            if (enabled)
+                lvPickedItems_SelectionChanged(null, null);
         }
     }
 }

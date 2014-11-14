@@ -70,8 +70,8 @@
     <AppxPackagedFile Include="C:\Users\Toxa\Documents\Visual Studio 2013\Projects\rss\rssfeed\bin\Debug\SingleFeedPage.xbf">
       <PackagePath>SingleFeedPage.xbf</PackagePath>
     </AppxPackagedFile>
-    <AppxPackagedFile Include="C:\Users\Toxa\Documents\Visual Studio 2013\Projects\rss\rssfeed\bin\Debug\WPSettingsPage.xbf">
-      <PackagePath>WPSettingsPage.xbf</PackagePath>
+    <AppxPackagedFile Include="C:\Users\Toxa\Documents\Visual Studio 2013\Projects\rss\rssfeed\bin\Debug\SettingsPage.xbf">
+      <PackagePath>SettingsPage.xbf</PackagePath>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Toxa\Documents\Visual Studio 2013\Projects\rss\rssfeed\bin\Debug\rssfeed.xr.xml">
       <PackagePath>rssfeed.xr.xml</PackagePath>
