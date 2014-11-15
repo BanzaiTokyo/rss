@@ -21,7 +21,7 @@ using System.Diagnostics;
 
 namespace rssfeed.Data
 {
-    public delegate void MethodHandler(); // The type
+    public delegate void PostProgressHandler(string error = null); // The type
 
     [DataContract]
     class PickedItem
@@ -162,7 +162,7 @@ namespace rssfeed.Data
             }
         }
 
-        public static async void PostItemToBlog(PickedItem item, bool DeleteAfterPost, MethodHandler Finalize = null)
+        public static async void PostItemToBlog(PickedItem item, bool DeleteAfterPost, PostProgressHandler Progress)
         {
             IPropertySet settings = ApplicationData.Current.LocalSettings.Values;
             WordpressWrapper proxy = new WordpressWrapper();
@@ -184,9 +184,9 @@ namespace rssfeed.Data
                 error = true;
             }
             if (error)
-                PostContentToBlog(proxy, item, null, DeleteAfterPost, Finalize);
+                PostContentToBlog(proxy, item, null, DeleteAfterPost, Progress);
             else
-                PostPictureToBlog(proxy, item, picture, DeleteAfterPost, Finalize);
+                PostPictureToBlog(proxy, item, picture, DeleteAfterPost, Progress);
             /*
             proxy.BeginGetRecentPosts(0, (string)settings["Username"], (string)settings["Password"], 1, async asr =>
             {
@@ -210,7 +210,8 @@ namespace rssfeed.Data
             Debug.WriteLine("PostItem out");
         }
 
-        private static void PostPictureToBlog(WordpressWrapper wp, PickedItem item, XmlRpcStruct picture, bool DeleteAfterPost, MethodHandler Finalize = null) {
+        private static void PostPictureToBlog(WordpressWrapper wp, PickedItem item, XmlRpcStruct picture, bool DeleteAfterPost, PostProgressHandler Progress)
+        {
             IPropertySet settings = ApplicationData.Current.LocalSettings.Values;
             wp.BeginNewMediaObject(0, (string)settings["Username"], (string)settings["Password"], picture, asr =>
             {
@@ -222,18 +223,14 @@ namespace rssfeed.Data
                 catch (Exception ex)
                 {
                     Debug.WriteLine("Error mediaObject {0}", ex);
-                    if (Finalize != null)
-                    {
-                        Debug.WriteLine("Finalizing");
-                        Finalize();
-                    }
+                    Progress(ex.Message);
                     return;
                 }
-                PostContentToBlog(wp, item, resultMediaObject["id"], DeleteAfterPost, Finalize);
+                PostContentToBlog(wp, item, resultMediaObject["id"], DeleteAfterPost, Progress);
             }); // of BeginNewMediaObject
         }
 
-        private static void PostContentToBlog(WordpressWrapper wp, PickedItem item, object ThumbnailID, bool DeleteAfterPost, MethodHandler Finalize = null)
+        private static void PostContentToBlog(WordpressWrapper wp, PickedItem item, object ThumbnailID, bool DeleteAfterPost, PostProgressHandler Progress)
         {
             XmlRpcStruct post = new XmlRpcStruct();
             post.Add("dateCreated", DateTime.Now);
@@ -251,12 +248,7 @@ namespace rssfeed.Data
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine("Error newPost {0}", ex);
-                    if (Finalize != null)
-                    {
-                        Debug.WriteLine("Finalizing");
-                        Finalize();
-                    }
+                    Progress(ex.Message);
                     return;
                 }
                 Debug.WriteLine(resultPost);
@@ -267,11 +259,7 @@ namespace rssfeed.Data
                         Debug.WriteLine("Deleting {0}", item.Title);
                         await DeleteItem(item);
                     }
-                    if (Finalize != null)
-                    {
-                        Debug.WriteLine("Finalizing");
-                        Finalize();
-                    }
+                    Progress();
                 });
             }); // of BeginNewPost
         }

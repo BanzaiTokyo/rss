@@ -32,7 +32,9 @@ namespace rssfeed
     {
         private NavigationHelper navigationHelper;
         private ObservableDictionary defaultViewModel = new ObservableDictionary();
-        public bool ButtonsEnabled = true;
+        IList<PickedItem> selectedItems = new List<PickedItem>();
+        List<string> postErrors = new List<string>();
+        bool wasSuccessPost;
 
         public PickedItemsPage()
         {
@@ -129,7 +131,7 @@ namespace rssfeed
         private async void btnRemove_Click(object sender, RoutedEventArgs e)
         {
             IsEnabled = false;
-            IList<PickedItem> selectedItems = new List<PickedItem>();
+            selectedItems.Clear();
             foreach (PickedItem item in lvPickedItems.SelectedItems)
                 selectedItems.Add(item);
             foreach (PickedItem item in selectedItems)
@@ -142,7 +144,8 @@ namespace rssfeed
         private void btnPost_Click(object sender, RoutedEventArgs e)
         {
             EnableButtons(false);
-            IList<PickedItem> selectedItems = new List<PickedItem>();
+            selectedItems.Clear();
+            postErrors.Clear();
             foreach (PickedItem item in lvPickedItems.SelectedItems)
                 selectedItems.Add(item);
             pgsProgress.Maximum = selectedItems.Count;
@@ -152,20 +155,47 @@ namespace rssfeed
             for (int i = 0; i < selectedItems.Count; i++) {
                 if (!msgProgress.IsOpen)
                     break;
-               PickedItemsSource.PostItemToBlog(selectedItems[i], true, i == selectedItems.Count - 1 ? new MethodHandler(EndPosting) : null);
-               pgsText.Text = string.Format("Posted {0} of {1} posts", new object[] { i + 1, selectedItems.Count });
-               pgsProgress.Value = i + 1;
+               PickedItemsSource.PostItemToBlog(selectedItems[i], true, new PostProgressHandler(PostingProgress));
             }
+        }
+
+        public async void PostingProgress(string error = null)
+        {
+            var dispatcher = Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher;
+            await dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                if (error != null)
+                    postErrors.Add(selectedItems[(int)pgsProgress.Value] + ":\n" + error);
+                else
+                    wasSuccessPost = true;
+                pgsProgress.Value = pgsProgress.Value + 1;
+                pgsText.Text = String.Format("Processed {0} of {1} posts", pgsProgress.Value, selectedItems.Count);
+                if (pgsProgress.Value == selectedItems.Count || !msgProgress.IsOpen)
+                    EndPosting();
+            });
         }
 
         public async void EndPosting()
         {
-            msgProgress.IsOpen = false;
-            lvPickedItems.SelectedItems.Clear();
-            await PickedItemsSource.SaveAsync();
-            EnableButtons(true);
-            MessageDialog msgbox = new MessageDialog("Posting finished");
-            await msgbox.ShowAsync();
+            var dispatcher = Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher;
+            await dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
+            {
+                msgProgress.IsOpen = false;
+                if (wasSuccessPost)
+                    await PickedItemsSource.SaveAsync();
+                lvPickedItems.SelectedItems.Clear();
+                EnableButtons(true);
+                MessageDialog msgbox;
+                string title = "Posting finished";
+                if (postErrors.Count > 0)
+                {
+                    string msg = "There was an error during the operation: " + String.Join(":\n", postErrors);
+                    msgbox = new MessageDialog(msg, title);
+                }
+                else
+                    msgbox = new MessageDialog(title);
+                await msgbox.ShowAsync();
+            });
         }
 
         private void GoToFeedsList(object sender, RoutedEventArgs e)
