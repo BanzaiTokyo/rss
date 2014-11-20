@@ -77,6 +77,7 @@ namespace rssfeed
         {
             var sampleDataGroups = await PickedItemsSource.GetItemsAsync();
             this.DefaultViewModel["Items"] = sampleDataGroups;
+            PickedItemsSource.viewer = lvPickedItems;
             lvPickedItems_SelectionChanged(null, null);
         }
 
@@ -136,6 +137,7 @@ namespace rssfeed
                 selectedItems.Add(item);
             foreach (PickedItem item in selectedItems)
                 await PickedItemsSource.DeleteItem(item);
+                //item.Status = "removed";
 
             await PickedItemsSource.SaveAsync();
             IsEnabled = true;
@@ -155,7 +157,7 @@ namespace rssfeed
             for (int i = 0; i < selectedItems.Count; i++) {
                 if (!msgProgress.IsOpen)
                     break;
-               PickedItemsSource.PostItemToBlog(selectedItems[i], true, new PostProgressHandler(PostingProgress));
+               PickedItemsSource.PostItemToBlog(selectedItems[i], new PostProgressHandler(PostingProgress));
             }
         }
 
@@ -182,7 +184,9 @@ namespace rssfeed
             {
                 msgProgress.IsOpen = false;
                 if (wasSuccessPost)
+                {
                     await PickedItemsSource.SaveAsync();
+                }
                 lvPickedItems.SelectedItems.Clear();
                 EnableButtons(true);
                 MessageDialog msgbox;
@@ -210,6 +214,14 @@ namespace rssfeed
 
         private async void btnScanFeeds_Click(object sender, RoutedEventArgs e)
         {
+            MessageDialog msgbox;
+            if (PickedItemsSource.scanInProgress)
+            {
+                msgbox = new MessageDialog("Feeds scan is in progress. Please, try again in a minute or two");
+                await msgbox.ShowAsync();
+                return;
+            }
+            PickedItemsSource.scanInProgress = true;
             var Feeds = await FeedsListData.GetFeedsAsync();
             int numFeeds = ((ObservableCollection<FeedsListItem>)Feeds).Count;
             IPropertySet settings = ApplicationData.Current.LocalSettings.Values;
@@ -248,7 +260,7 @@ namespace rssfeed
                     Debug.WriteLine("{0} {1}", new object[] {numFound, post.Title});
                     if (numFound == keywords.Count())
                     {
-                        bool added = await PickedItemsSource.AddItem(post.Title, post.Description, post.ImagePath);
+                        bool added = await PickedItemsSource.AddItem(post.Title, post.Description, post.ImagePath, post.Published);
                         if (added)
                             numAdded++;
                     }
@@ -260,8 +272,9 @@ namespace rssfeed
                 await PickedItemsSource.SaveAsync();
             }
             EnableButtons(true);
+            PickedItemsSource.scanInProgress = false;
             msgProgress.IsOpen = false;
-            MessageDialog msgbox = new MessageDialog(string.Format("Scan finished, {0} posts added to preview", numAdded));
+            msgbox = new MessageDialog(string.Format("Scan finished, {0} posts added to preview", numAdded));
             await msgbox.ShowAsync();
         }
 

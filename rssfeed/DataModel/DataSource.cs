@@ -40,13 +40,14 @@ namespace rssfeed.Data
     /// </summary>
     public class DataGroup
     {
-        public DataGroup(String uniqueId, String title, String link, String imagePath, String description)
+        public DataGroup(String uniqueId, String title, String link, String imagePath, String description, DateTimeOffset published)
         {
             this.UniqueId = uniqueId;
             this.Title = title;
             this.Link = link;
             this.Description = description;
             this.ImagePath = imagePath;
+            this.Published = published;
         }
 
         public string UniqueId { get; private set; }
@@ -54,6 +55,7 @@ namespace rssfeed.Data
         public string Link { get; private set; }
         public string Description { get; private set; }
         public string ImagePath { get; private set; }
+        public DateTimeOffset Published { get; private set; }
 
         public override string ToString()
         {
@@ -112,7 +114,7 @@ namespace rssfeed.Data
             Uri feedUri = new Uri(URL);//"http://feeds.feedburner.com/TechCrunch/");
             var feed = await client.RetrieveFeedAsync(feedUri);
 
-            foreach (SyndicationItem item in feed.Items)
+            foreach (SyndicationItem item in feed.Items.Where(item => DateTimeOffset.UtcNow.Subtract(item.PublishedDate).Days < 31))
             {
                 string data = string.Empty;
                 if (feed.SourceFormat == SyndicationFormat.Atom10)
@@ -134,7 +136,8 @@ namespace rssfeed.Data
                                                 item.Title.Text,
                                                 item.Links[0].Uri.ToString(),
                                                 filePath.Replace("small", "large"),
-                                                data);//).Split(new string[] { "/&gt;" }, StringSplitOptions.None)[1].ToString());
+                                                data, //).Split(new string[] { "/&gt;" }, StringSplitOptions.None)[1].ToString(),
+                                                item.PublishedDate);
 
                 this.Groups.Add(group);
                 //}

@@ -1,4 +1,5 @@
 ﻿using rssfeed.Common;
+using rssfeed.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -156,22 +157,28 @@ namespace rssfeed
                 return;
             }
 
+            if (!txtBlogURL.Text.EndsWith("/"))
+                txtBlogURL.Text += "/";
             settings["BlogURL"] = txtBlogURL.Text;
             settings["Username"] = txtUsername.Text;
             settings["Password"] = txtPassword.Password;
             settings["Keywords"] = String.Join(",", keywords);
             settings["UpdatePeriod"] = UpdatePeriod.Value;
+            PickedItemsSource.SetupUpdateTimer();
 
             if (Frame.CanGoBack)
                 Frame.GoBack();
             else
+            {
                 Frame.Navigate(typeof(PickedItemsPage));
+                Frame.BackStack.Clear();
+            }
         }
 
         private void UpdatePeriod_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
         {
             if (txtDays != null)
-                txtDays.Text = string.Format("{0} days", e.NewValue);
+                txtDays.Text = string.Format("{0} minutes", e.NewValue);
         }
     }
 }

@@ -133,9 +133,10 @@ namespace rssfeed
             DataSource.Clear();
             bool error = false;
             IsEnabled = false;
+            IEnumerable<DataGroup> feedContent = null;
             try
             {
-                var sampleDataGroups = await DataSource.GetGroupsAsync(((FeedsListItem)lvFeeds.SelectedItem).URL);
+                feedContent = await DataSource.GetGroupsAsync(((FeedsListItem)lvFeeds.SelectedItem).URL);
             }
             catch
             {
@@ -145,6 +146,11 @@ namespace rssfeed
             if (error)
             {
                 MessageDialog msgbox = new MessageDialog("Error Reading feed");
+                await msgbox.ShowAsync();
+            }
+            else if (feedContent.Count() == 0)
+            {
+                MessageDialog msgbox = new MessageDialog("There are no new records");
                 await msgbox.ShowAsync();
             }
             else

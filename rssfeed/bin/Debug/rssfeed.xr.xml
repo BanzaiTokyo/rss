@@ -8,6 +8,7 @@
     <RootPropertyPathName Name="Content" />
     <RootPropertyPathName Name="Title" />
     <RootPropertyPathName Name="Thumbnail" />
+    <RootPropertyPathName Name="Timestamp" />
     <RootPropertyPathName Name="Description" />
     <RootPropertyPathName Name="ImagePath" />
     <RootPropertyPathName Name="Data" />
