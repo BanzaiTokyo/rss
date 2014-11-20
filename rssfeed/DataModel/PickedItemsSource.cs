@@ -283,7 +283,9 @@ namespace rssfeed.Data
         {
             XmlRpcStruct post = new XmlRpcStruct();
             post.Add("dateCreated", item.Timestamp.DateTime);
-            post.Add("description", item.Content + " <a href=\""+item.URL+"\">read more</a>");
+            string s = item.Content + " <a href=\"" + item.URL + "\">read more</a>";
+            post.Add("description", s);
+            post.Add("mt_excerpt", s);
             post.Add("title", item.Title);
             if (ThumbnailID != null)
                 post.Add("wp_post_thumbnail", ThumbnailID);
