@@ -38,16 +38,22 @@ namespace rssfeed.Data
         public string Status { get; set; }
         [DataMember]
         public DateTimeOffset Timestamp { get; set; }
+        [DataMember]
+        public string URL { get; set; }
+        [DataMember]
+        public string FeedName { get; set; }
 
-        public PickedItem(String _title, String _content, String _thumbnail, DateTimeOffset _timestamp)
+        public PickedItem(String _title, String _content, String _thumbnail, DateTimeOffset _timestamp, String _url, String _feedName)
         {
             this.Title = _title;
             this.Content = _content;
             this.Thumbnail = _thumbnail;
             this.Timestamp = _timestamp;
             this.Status = "new";
-
+            this.URL = _url;
+            this.FeedName = _feedName;
         }
+
         public override string ToString()
         {
             return this.Title;
@@ -156,7 +162,7 @@ namespace rssfeed.Data
             _dataSource.OnPropertyChanged("Items");
         }
 
-        public static async Task<bool> AddItem(String _title, String _content, String _imagePath, DateTimeOffset _timestamp)
+        public static async Task<bool> AddItem(String _title, String _content, String _imagePath, DateTimeOffset _timestamp, String _url, String _feedName)
         {
             if (_dataSource._items.Where(itm => itm.Title == _title).ToList().Count > 0)
                 return false;
@@ -183,7 +189,7 @@ namespace rssfeed.Data
             {
                 _imagePath = string.Empty;
             }
-            PickedItem item = new PickedItem(_title, _content, _imagePath, _timestamp);
+            PickedItem item = new PickedItem(_title, _content, _imagePath, _timestamp, _url, _feedName);
             _dataSource._items.Add(item);
             return true;
         }
@@ -276,8 +282,8 @@ namespace rssfeed.Data
         private static void PostContentToBlog(WordpressWrapper wp, PickedItem item, object ThumbnailID, PostProgressHandler Progress)
         {
             XmlRpcStruct post = new XmlRpcStruct();
-            post.Add("dateCreated", DateTime.Now);
-            post.Add("description", item.Content);
+            post.Add("dateCreated", item.Timestamp.DateTime);
+            post.Add("description", item.Content + " <a href=\""+item.URL+"\">read more</a>");
             post.Add("title", item.Title);
             if (ThumbnailID != null)
                 post.Add("wp_post_thumbnail", ThumbnailID);
@@ -367,7 +373,7 @@ namespace rssfeed.Data
                     Debug.WriteLine("{0} {1}", new object[] { numFound, post.Title });
                     if (numFound == keywords.Count())
                     {
-                        bool added = await AddItem(post.Title, post.Description, post.ImagePath, post.Published);
+                        bool added = await AddItem(post.Title, post.Description, post.ImagePath, post.Published, post.Link, feed.Name);
                         if (added)
                             numAdded++;
                     }

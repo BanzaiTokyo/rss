@@ -130,7 +130,7 @@ namespace rssfeed
         {
             foreach (DataGroup item in lvFeed.SelectedItems)
             {
-                await PickedItemsSource.AddItem(item.Title, item.Description, item.ImagePath, item.Published);
+                await PickedItemsSource.AddItem(item.Title, item.Description, item.ImagePath, item.Published, item.Link, lblFeedName.Text);
             }
             await PickedItemsSource.SaveAsync();
             Frame.BackStack.RemoveAt(Frame.BackStackDepth - 1); 

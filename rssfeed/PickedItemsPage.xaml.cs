@@ -145,6 +145,13 @@ namespace rssfeed
 
         private void btnPost_Click(object sender, RoutedEventArgs e)
         {
+            MessageDialog msgbox;
+            if (PickedItemsSource.scanInProgress)
+            {
+                msgbox = new MessageDialog("Feeds scan is in progress. Please, try again in a minute or two");
+                msgbox.ShowAsync();
+                return;
+            }
             EnableButtons(false);
             selectedItems.Clear();
             postErrors.Clear();
@@ -154,6 +161,7 @@ namespace rssfeed
             pgsProgress.Value = 0;
             pgsText.Text = "Posting...";
             msgProgress.IsOpen = true;
+            PickedItemsSource.scanInProgress = true;
             for (int i = 0; i < selectedItems.Count; i++) {
                 if (!msgProgress.IsOpen)
                     break;
@@ -182,6 +190,7 @@ namespace rssfeed
             var dispatcher = Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher;
             await dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
             {
+                PickedItemsSource.scanInProgress = false;
                 msgProgress.IsOpen = false;
                 if (wasSuccessPost)
                 {
@@ -260,7 +269,7 @@ namespace rssfeed
                     Debug.WriteLine("{0} {1}", new object[] {numFound, post.Title});
                     if (numFound == keywords.Count())
                     {
-                        bool added = await PickedItemsSource.AddItem(post.Title, post.Description, post.ImagePath, post.Published);
+                        bool added = await PickedItemsSource.AddItem(post.Title, post.Description, post.ImagePath, post.Published, post.Link, feed.Name);
                         if (added)
                             numAdded++;
                     }
