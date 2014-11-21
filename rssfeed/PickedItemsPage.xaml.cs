@@ -230,52 +230,10 @@ namespace rssfeed
                 await msgbox.ShowAsync();
                 return;
             }
-            PickedItemsSource.scanInProgress = true;
-            var Feeds = await FeedsListData.GetFeedsAsync();
-            int numFeeds = ((ObservableCollection<FeedsListItem>)Feeds).Count;
-            IPropertySet settings = ApplicationData.Current.LocalSettings.Values;
-            int i, numAdded = 0;
-            string[] keywords = null;
-            if (settings.ContainsKey("Keywords"))
-                keywords = ((string)settings["Keywords"]).Split(',');
-
             EnableButtons(false);
-            i = 0;
+            PickedItemsSource.scanInProgress = true;
             msgProgress.IsOpen = true;
-            pgsProgress.Maximum = numFeeds - 1;
-            foreach(FeedsListItem feed in Feeds) 
-            {
-                if (!msgProgress.IsOpen)
-                    break;
-                pgsText.Text = string.Format("Read {0} of {1} feeds", i, numFeeds);
-                pgsProgress.Value = i;
-                IEnumerable<DataGroup> posts;
-                try
-                {
-                    posts = await DataSource.GetGroupsAsync(feed.URL);
-                }
-                catch
-                {
-                    continue;
-                }
-                foreach (DataGroup post in posts) {
-                    int numFound = 0;
-                    string title = post.Title.ToLower();
-                    foreach (string keyword in keywords)
-                    {
-                        if (title.IndexOf(keyword.ToLower()) >= 0)
-                            numFound++;
-                    }
-                    Debug.WriteLine("{0} {1}", new object[] {numFound, post.Title});
-                    if (numFound == keywords.Count())
-                    {
-                        bool added = await PickedItemsSource.AddItem(post.Title, post.Description, post.ImagePath, post.Published, post.Link, feed.Name);
-                        if (added)
-                            numAdded++;
-                    }
-                }
-                i++;
-            } // of feeds cycle
+            int numAdded = await PickedItemsSource.ScanFeeds(pgsProgress, pgsText);
             if (numAdded > 0)
             {
                 await PickedItemsSource.SaveAsync();
@@ -290,6 +248,7 @@ namespace rssfeed
         private void StopScan(object sender, RoutedEventArgs e)
         {
             msgProgress.IsOpen = false;
+            PickedItemsSource.scanInProgress = false;
         }
 
         private void EnableButtons(bool enabled)

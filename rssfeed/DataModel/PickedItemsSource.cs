@@ -20,6 +20,8 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using System.Diagnostics;
 using Windows.UI.ViewManagement;
+using Windows.UI.Notifications;
+using Windows.Data.Xml.Dom;
 
 namespace rssfeed.Data
 {
@@ -70,16 +72,33 @@ namespace rssfeed.Data
         private static IPropertySet settings = ApplicationData.Current.LocalSettings.Values;
         private ObservableCollection<PickedItem> _items = new ObservableCollection<PickedItem>();
         public static ListView viewer;
+        public static TileUpdater tileUpdater = TileUpdateManager.CreateTileUpdaterForApplication();
         public IEnumerable<PickedItem> Items
         {
-            get { return this._items.Where(item => item.Status == "new"); }
+            get { return this._items.Where(item => item.Status == "new").OrderByDescending(item => item.Timestamp); }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string propName)
         {
             if (viewer != null)
+            {
                 viewer.ItemsSource = _dataSource.Items;
+                if (viewer.Items.Count > 0) // to trigger "selectionchanged"
+                {
+                    if (viewer.SelectedItems.Contains(viewer.Items[0]))
+                    {
+                        viewer.SelectedItems.Remove(viewer.Items[0]);
+                        viewer.SelectedItems.Add(viewer.Items[0]);
+                    }
+                    else
+                    {
+                        viewer.SelectedItems.Add(viewer.Items[0]);
+                        viewer.SelectedItems.Remove(viewer.Items[0]);
+                    }
+                }
+            }
+            UpdateTileWithPostsCount();
             //viewer.UpdateLayout();
             if (PropertyChanged != null)
             {
@@ -89,7 +108,7 @@ namespace rssfeed.Data
 
         static PickedItemsSource()
         {
-            updateTimer.Tick += new EventHandler<object>(ScanFeeds);
+            updateTimer.Tick += new EventHandler<object>(ScanFeedsByTimer);
             cleanupTimer.Interval = TimeSpan.FromDays(1.0);
             cleanupTimer.Tick += new EventHandler<object>(CleanDB);
             CleanDB(null, null);
@@ -139,6 +158,7 @@ namespace rssfeed.Data
                     DataContractSerializer serializer = new DataContractSerializer(typeof(ObservableCollection<PickedItem>));
                     this._items = (ObservableCollection<PickedItem>)serializer.ReadObject(inStream.AsStreamForRead());
                 }
+                UpdateTileWithPostsCount();
             }
             catch
             {
@@ -332,7 +352,7 @@ namespace rssfeed.Data
                 }
         }
 
-        public static async void ScanFeeds(object sender, object e)
+        public static async void ScanFeedsByTimer(object sender, object e)
         {
             if (scanInProgress)
                 return;
@@ -340,20 +360,48 @@ namespace rssfeed.Data
             StatusBarProgressIndicator progressbar = StatusBar.GetForCurrentView().ProgressIndicator;
             progressbar.ProgressValue = 0;
             progressbar.Text = "Scanning RSS feeds...";
-            progressbar.ShowAsync(); 
+            progressbar.ShowAsync();
+            int numAdded = await ScanFeeds(null, null, progressbar);
+            if (numAdded > 0)
+                lock (_dataSource._items)
+                {
+                    SaveAsync();
+                }
+            progressbar.HideAsync();
+            scanInProgress = false;
+        }
+
+        public static async Task<int> ScanFeeds(ProgressBar pgsProgress=null, TextBlock pgsText=null, StatusBarProgressIndicator stbProgress = null)
+        {
             var Feeds = await FeedsListData.GetFeedsAsync();
             int numFeeds = ((ObservableCollection<FeedsListItem>)Feeds).Count;
-            IPropertySet settings = ApplicationData.Current.LocalSettings.Values;
             int numAdded = 0;
-            string[] keywords = null;
 
+            string[] keywords = null;
             if (settings.ContainsKey("Keywords"))
                 keywords = ((string)settings["Keywords"]).Split(',');
+
             int feedsPassed = -1;
+            XmlDocument tileXml;
+            XmlNodeList tileTextAttributes;
             foreach (FeedsListItem feed in Feeds)
             {
+                if (!scanInProgress)
+                    break;
                 feedsPassed++;
-                progressbar.ProgressValue = (double)feedsPassed / Feeds.Count();
+                double progress = (double)feedsPassed / Feeds.Count();
+                if (stbProgress != null)
+                    stbProgress.ProgressValue = progress;
+                else
+                {
+                    pgsText.Text = string.Format("Read {0} of {1} feeds", feedsPassed, numFeeds);
+                    pgsProgress.Value = progress;
+
+                }
+                tileXml = TileUpdateManager.GetTemplateContent(TileTemplateType.TileSquareText03);
+                tileTextAttributes = tileXml.GetElementsByTagName("text");
+                tileTextAttributes[0].InnerText = String.Format("Scanning feeds: {0}%", (int)(progress*100));
+                tileUpdater.Update(new TileNotification(tileXml));
                 IEnumerable<DataGroup> posts;
                 try
                 {
@@ -381,13 +429,18 @@ namespace rssfeed.Data
                     }
                 }
             } // of feeds cycle
-            if (numAdded > 0)
-                lock (_dataSource._items)
-                {
-                    SaveAsync();
-                }
-            progressbar.HideAsync();
-            scanInProgress = false;
+            UpdateTileWithPostsCount();
+            return numAdded;
+        }
+
+        static void UpdateTileWithPostsCount()
+        {
+            XmlDocument tileXml;
+            XmlNodeList tileTextAttributes;
+            tileXml = TileUpdateManager.GetTemplateContent(TileTemplateType.TileSquare150x150Text04);
+            tileTextAttributes = tileXml.GetElementsByTagName("text");
+            tileTextAttributes[0].InnerText = String.Format("{0} posts are waiting for submit", _dataSource._items.Count);
+            tileUpdater.Update(new TileNotification(tileXml));
         }
     }
 }
