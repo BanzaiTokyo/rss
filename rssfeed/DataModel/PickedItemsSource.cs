@@ -437,9 +437,24 @@ namespace rssfeed.Data
         {
             XmlDocument tileXml;
             XmlNodeList tileTextAttributes;
-            tileXml = TileUpdateManager.GetTemplateContent(TileTemplateType.TileSquare150x150Text04);
-            tileTextAttributes = tileXml.GetElementsByTagName("text");
-            tileTextAttributes[0].InnerText = String.Format("{0} posts are waiting for submit", _dataSource._items.Count);
+            string message = String.Format("{0} posts are waiting for submit", _dataSource._items.Count(itm => itm.Status == "new"));
+            var aPicture = _dataSource._items.Where(itm => itm.Status == "new" && !string.IsNullOrEmpty(itm.Thumbnail)).OrderByDescending(itm => itm.Timestamp).First();
+            if (aPicture == null)
+            {
+                tileXml = TileUpdateManager.GetTemplateContent(TileTemplateType.TileSquare150x150Text04);
+                tileTextAttributes = tileXml.GetElementsByTagName("text");
+                tileTextAttributes[0].InnerText = message;
+            }
+            else
+            {
+                tileXml = TileUpdateManager.GetTemplateContent(TileTemplateType.TileSquare150x150PeekImageAndText04);
+                tileTextAttributes = tileXml.GetElementsByTagName("text");
+                tileTextAttributes[0].InnerText = message;
+                XmlNodeList tileImageAttributes = tileXml.GetElementsByTagName("image");
+                string imgPath = System.IO.Path.GetFileName(aPicture.Thumbnail);
+                imgPath = "ms-appdata:///local/" + imgPath;
+                ((XmlElement)tileImageAttributes[0]).SetAttribute("src", imgPath);
+            }
             tileUpdater.Update(new TileNotification(tileXml));
         }
     }
