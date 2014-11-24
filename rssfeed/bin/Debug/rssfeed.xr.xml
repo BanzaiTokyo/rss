@@ -9,6 +9,7 @@
     <RootPropertyPathName Name="Title" />
     <RootPropertyPathName Name="Thumbnail" />
     <RootPropertyPathName Name="Timestamp" />
+    <RootPropertyPathName Name="FeedName" />
     <RootPropertyPathName Name="Description" />
     <RootPropertyPathName Name="ImagePath" />
     <RootPropertyPathName Name="Data" />
@@ -48,8 +49,8 @@
       <RootProperty Name="Children" />
       <RootProperty Name="VerticalAlignment" />
       <RootProperty Name="Background" />
-      <RootProperty Name="HorizontalAlignment" />
       <RootProperty Name="Orientation" />
+      <RootProperty Name="HorizontalAlignment" />
     </RootType>
     <RootType FullName="Windows.UI.Xaml.Controls.TextBox">
       <RootProperty Name="HorizontalAlignment" />

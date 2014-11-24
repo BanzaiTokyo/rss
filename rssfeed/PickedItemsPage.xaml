@@ -74,7 +74,7 @@
                 <DataTemplate>
                     <Grid HorizontalAlignment="Left" MinHeight="200">
 
-                        <StackPanel VerticalAlignment="Top" Background="{ThemeResource ListViewItemOverlayBackgroundThemeBrush}" Margin="0,0,0,2">
+                        <StackPanel VerticalAlignment="Top" Background="{ThemeResource ListViewItemOverlayBackgroundThemeBrush}" Margin="0,0,20,2">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="Feed: " Foreground="{ThemeResource AppBarBackgroundThemeBrush}" Style="{StaticResource BaseTextBlockStyle}" Margin="15,0,5,0" FontWeight="SemiBold" VerticalAlignment="Bottom"/>
                                 <TextBlock Text="{Binding FeedName}" Foreground="{ThemeResource AppBarBackgroundThemeBrush}" Style="{StaticResource BaseTextBlockStyle}" Margin="0,0,14.833,0" FontWeight="SemiBold" VerticalAlignment="Bottom"/>
